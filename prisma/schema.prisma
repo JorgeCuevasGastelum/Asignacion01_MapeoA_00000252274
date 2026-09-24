@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum EstadoOrden {
+  abierta
+  en_proceso
+  entregada
+  cancelada
+}
+
+model Cliente {
+  id        Int        @id @default(autoincrement())
+  nombre    String     @db.VarChar(100)
+  telefono  String     @db.VarChar(20)
+  correo    String     @unique @db.VarChar(191)
+  vehiculos Vehiculo[]
+}
+
+model Vehiculo {
+  id        Int             @id @default(autoincrement())
+  placa     String          @unique @db.VarChar(20)
+  marca     String          @db.VarChar(60)
+  modelo    String          @db.VarChar(60)
+  anio      Int
+  clienteId Int
+  cliente   Cliente         @relation(fields: [clienteId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  ordenes   OrdenServicio[]
+}
+
+model OrdenServicio {
+  id           Int         @id @default(autoincrement())
+  descripcion  String      @db.Text
+  fechaIngreso DateTime    @default(now())
+  estado       EstadoOrden @default(abierta)
+  vehiculoId   Int
+  vehiculo     Vehiculo    @relation(fields: [vehiculoId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  refacciones  Refaccion[]
+}
+
+model Refaccion {
+  id              Int           @id @default(autoincrement())
+  nombre          String        @db.VarChar(100)
+  precio          Decimal       @db.Decimal(10, 2)
+  ordenServicioId Int
+  ordenServicio   OrdenServicio @relation(fields: [ordenServicioId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+}
